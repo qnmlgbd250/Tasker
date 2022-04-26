@@ -100,6 +100,7 @@ class Sign(object):
         else:
             self.log.error('cookie缓存登录失败')
             self._login()
+            self.login_with_cookie()
 
 
 if __name__ == '__main__':
