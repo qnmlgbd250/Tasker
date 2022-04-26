@@ -40,7 +40,7 @@ class Sign(object):
         return text
 
     def _login(self):
-        for _ in range(3):
+        for _ in range(5):
             self.requests_.get(self._url, headers=self.headers)
             resp_ = self.requests_.get(
                 f'{self._url}/member.php?mod=logging&action=login&infloat=yes&handlekey=login&inajax=1&ajaxtarget=fwin_content_login', ).text
@@ -79,6 +79,7 @@ class Sign(object):
             else:
                 self.log.success('自助登录成功')
                 self.save_cookie()
+                break
 
 
     def save_cookie(self):
