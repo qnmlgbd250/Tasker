@@ -12,6 +12,7 @@ import random
 import os
 from schedule import every, repeat, run_pending
 from tools import Log
+import threading
 
 import send_msg
 from dotenv import load_dotenv
@@ -74,6 +75,7 @@ def yundong(step_, ppdict: dict):
             massage = f'账号{phone}刷步数{step},返回信息:第一次{rep["msg"]},第二次{rep2["msg"]},时间{time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(int(time.time())))}'
             log.info(massage)
         send_msg.send_dingding(massage)
+
 
 
 

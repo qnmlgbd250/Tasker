@@ -6,26 +6,18 @@
 # @Software: PyCharm
 
 import click
-import sign
-import yun
+import task
 
 @click.group()
 def cli():
     pass
 
 @click.command()
-def autosign():
-    """论坛自动签到"""
-    sign.run()
-
-@click.command()
-def yundong():
-    """自动刷步数"""
-    yun.run()
+def taskstart():
+    task.run()
 
 
-cli.add_command(autosign, name = 'autosign')
-cli.add_command(yundong, name = 'yundong')
+cli.add_command(taskstart, name = 'taskstart')
 
 
 if __name__ == '__main__':
