@@ -15,15 +15,16 @@ load_dotenv()
 from Redis import RedisTool
 import send_msg
 import time
+from schedule import every, repeat, run_pending
+import schedule
 
 
 class Sign(object):
-    def __init__(self):
+    def __init__(self,**kwargs):
         self._url = os.getenv('CUNHUA_WEBSITE')
         self.username = os.getenv('CUNHUA_USERNAME')
         self.password = os.getenv('CUNHUA_PASSWORD')
         self.headers = {
-            'Cookie': '',
             'accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9',
             'accept-encoding': 'gzip, deflate, br', 'accept-language': 'zh-CN,zh;q=0.9',
             'upgrade-insecure-requests': '1',
@@ -91,7 +92,7 @@ class Sign(object):
         self.log.success('Cookie保存到redis成功')
 
     def login_with_cookie(self):
-        cookie = '_ga=GA1.2.556904626.1649494043; n4XN_2132_saltkey=JGzCzc08; n4XN_2132_lastvisit=1650803729; _gid=GA1.2.337403476.1650980551; n4XN_2132_sendmail=1; _gat_gtag_UA_144688693_3=1; n4XN_2132_sid=KhGFss; n4XN_2132_seccode=13573.82dd9bbd147d4d05de; n4XN_2132_ulastactivity=326eaxrI7pXxRVXAxJL16tZGypxjJZjwfD25wUeew9qeqceDfJe5; n4XN_2132_auth=638a%2F33CMRA%2ByaZjRZTRYQKnWSjFX3Btv5wPu7F1Fr3g8Zh0vWG3Z7pLjnLvPA1wO3dg99AAVl%2B7bPeTFELvkYKq3Yo; n4XN_2132_lastcheckfeed=198866%7C1650980838; n4XN_2132_checkfollow=1; n4XN_2132_lip=210.21.226.100%2C1650963287; n4XN_2132_member_login_status=1; n4XN_2132_nofavfid=1; n4XN_2132_checkpm=1; n4XN_2132_lastact=1650980842%09misc.php%09patch'
+        cookie = self.RedisTool.redis_get('Cookie_cunhua')
         self.headers.update({'Cookie': cookie})
         resp = self.requests_.get(self._url, headers=self.headers)
         if '登录' not in resp.text:
@@ -104,21 +105,30 @@ class Sign(object):
             self.login_with_cookie()
 
     def sign_today(self):
-        massage = ''
+        massage = '签到出错啦！！！'
         resp_ = self.requests_.get(self._url, headers=self.headers)
         if '今日已签' in resp_.text:
             self.log.info('今日已签到')
             massage = f'账号{os.getenv("CUNHUA_USER")}今日已签,时间{time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(int(time.time())))}'
         else:
             formhash = re.findall(r'name="formhash" value="(\S{8})"', resp_.text)[0]
-            resp = self.requests_.get(f'{self._url}/k_misign-sign.html?operation=qiandao&format=global_usernav_extra&formhash={formhash}b&inajax=1&ajaxtarget=k_misign_topb', headers=self.headers)
-            if '今日已签' in resp_.text:
+            resp = self.requests_.get(f'{self._url}/k_misign-sign.html?operation=qiandao&format=global_usernav_extra&formhash={formhash}&inajax=1&ajaxtarget=k_misign_topb', headers=self.headers)
+            if '今日已签' in resp.text:
                 self.log.info('今日已签到')
                 massage = f'账号{os.getenv("CUNHUA_USER")}今日已签,时间{time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(int(time.time())))}'
         self.log.success(massage)
         send_msg.send_dingding(massage)
 
 
-if __name__ == '__main__':
-    sign = Sign()
+def do_task(**kwargs):
+    sign = Sign(**kwargs)
     sign.login_with_cookie()
+
+timer_ = os.getenv('SET_TIME')
+schedule.every().day.at(timer_).do(do_task)
+
+def run():
+    while True:
+         schedule.run_pending()
+         time.sleep(1)
+
