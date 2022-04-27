@@ -14,7 +14,7 @@ def cli():
     pass
 
 @click.command()
-def aotosign():
+def autosign():
     """论坛自动签到"""
     sign.run()
 
@@ -24,7 +24,7 @@ def yundong():
     yun.run()
 
 
-cli.add_command(aotosign, name = 'aotosign')
+cli.add_command(autosign, name = 'autosign')
 cli.add_command(yundong, name = 'yundong')
 
 
