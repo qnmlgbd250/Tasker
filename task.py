@@ -187,7 +187,7 @@ schedule.every().day.at("16:30").do(do_yundong, steps = random.randint(5001, 520
 schedule.every().day.at("17:30").do(do_yundong, steps = random.randint(5500, 6000))
 schedule.every().day.at("18:30").do(do_yundong, steps = random.randint(10000, 11000))
 schedule.every().day.at("19:30").do(do_yundong, steps = random.randint(13000, 15000))
-schedule.every().day.at("21:20").do(do_yundong, steps = random.randint(17987, 21000))
+schedule.every().day.at("20:20").do(do_yundong, steps = random.randint(17987, 21000))
 
 
 def run():
