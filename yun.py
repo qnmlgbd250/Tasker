@@ -54,7 +54,7 @@ k = random.randint(17761, 21000)
 @repeat(every().day.at("15:30"), f, ppdict)
 @repeat(every().day.at("16:30"), g, ppdict)
 @repeat(every().day.at("17:30"), h, ppdict)
-@repeat(every().day.at("18:30"), i, ppdict)
+@repeat(every().day.at("18:51"), i, ppdict)
 @repeat(every().day.at("19:30"), j, ppdict)
 @repeat(every().day.at("20:30"), k, ppdict)
 def yundong(step_, ppdict: dict):
@@ -69,15 +69,15 @@ def yundong(step_, ppdict: dict):
         log.success(f"返回信息>> {rep['msg']} ")
         massage = f'账号{phone}刷步数{step},返回信息:{rep["msg"]},时间{time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(int(time.time())))}'
         log.info(massage)
-        if any(rep['msg'] in i for i in ['同步失败', '登录失败，账户或密码错误']):
+        if any(rep['msg'] in i for i in ['同步失败', '登录失败，账户或密码错误','您的时间异常，请同步最新时间后刷新网页']):
             rep2 = requests.post('https://api.shuabu.net/apix/xm.php', headers = headers, data = data).json()
             massage = f'账号{phone}刷步数{step},返回信息:第一次{rep["msg"]},第二次{rep2["msg"]},时间{time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(int(time.time())))}'
             log.info(massage)
         send_msg.send_dingding(massage)
 
 
-def run():
-    while True:
-        run_pending()
 
-        time.sleep(1)
+while True:
+    run_pending()
+
+    time.sleep(1)
