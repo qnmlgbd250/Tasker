@@ -79,18 +79,19 @@ class Sign(object):
             resp3 = self.requests_.post(login_url, data = data)
             if '验证码填写错误' in resp3.text:
                 self.log.error('验证码错误,返回结果:{}'.format(resp3.text))
+            if '密码错误次数过多，请 15 分钟后重新登录' in resp3.text:
+                self.log.error('密码错误次数过多，请 15 分钟后重新登录')
+                break
             else:
                 self.log.success('自助登录成功')
-                self.save_cookie()
+                cookies = self.requests_.cookies.get_dict()
+                cookie = ''
+                for key, value in cookies.items():
+                    cookie += key + '=' + value + ';'
+                self.RedisTool.redis_set('Cookie_cunhua', cookie)
+                self.log.success('Cookie保存到redis成功')
                 break
 
-    def save_cookie(self):
-        cookies = self.requests_.cookies.get_dict()
-        cookie = ''
-        for key, value in cookies.items():
-            cookie += key + '=' + value + ';'
-        self.RedisTool.redis_set('Cookie_cunhua', cookie)
-        self.log.success('Cookie保存到redis成功')
 
     def login_with_cookie(self):
         cookie = self.RedisTool.redis_get('Cookie_cunhua')
@@ -173,7 +174,7 @@ def do_yundong(steps):
 
 
 
-schedule.every().day.at("07:15").do(do_sign)
+schedule.every().day.at("22:04").do(do_sign)
 
 schedule.every().day.at("07:40").do(do_yundong, steps = random.randint(0, 300))
 schedule.every().day.at("08:30").do(do_yundong, steps = random.randint(600, 1000))
@@ -190,7 +191,10 @@ schedule.every().day.at("19:30").do(do_yundong, steps = random.randint(13000, 15
 schedule.every().day.at("20:20").do(do_yundong, steps = random.randint(17987, 21000))
 
 
-def run():
-    while True:
-        schedule.run_pending()
-        time.sleep(1)
+# def run():
+#     while True:
+#         schedule.run_pending()
+#         time.sleep(1)
+
+# Sign._login()
+Sign.login_with_cookie()
