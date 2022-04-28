@@ -191,10 +191,12 @@ schedule.every().day.at("19:30").do(do_yundong, steps = random.randint(13000, 15
 schedule.every().day.at("20:20").do(do_yundong, steps = random.randint(17987, 21000))
 
 
-# def run():
-#     while True:
-#         schedule.run_pending()
-#         time.sleep(1)
+def run():
+    while True:
+        schedule.run_pending()
+        time.sleep(1)
 
+
+#测试用
 # Sign._login()
-Sign.login_with_cookie()
+# Sign.login_with_cookie()
