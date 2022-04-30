@@ -1,5 +1,5 @@
 启动命令 
-python manage.py taskstart
+python3 manage.py taskstart
 
 
 pip freeze > requirements.txt # 生成requirements.txt

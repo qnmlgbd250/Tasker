@@ -92,7 +92,6 @@ class Sign(object):
                 self.log.success('Cookie保存到redis成功')
                 break
 
-
     def login_with_cookie(self):
         cookie = self.RedisTool.redis_get('Cookie_cunhua')
         self.headers.update({'Cookie': cookie})
@@ -132,6 +131,7 @@ class YunDong(object):
             'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/100.0.4896.127 Safari/537.36 Edg/100.0.1185.44'
         }
         self.log = Log()
+        self.notice = send_msg.send_dingding
 
     def init_dict(self):
         phone_list_str = os.environ.get('PHONE_NUMBER')
@@ -144,21 +144,30 @@ class YunDong(object):
     def make_step(self, step_):
         ppdict = self.init_dict()
         for phone, password in ppdict.items():
-            tim = str(int(time.time()))
-            step = str(step_ + random.randint(1, 200))
-            data_str = f'{phone}1{password}2{step}xjdsb{tim}'
-            bt = base64.b64encode(data_str.encode('utf-8')).decode("utf-8")
-            md5_val = hashlib.md5(bt.encode('utf8')).hexdigest()
-            data = f'time={tim}&phone={phone}&password={password}&step={step}&key={md5_val}'
-            rep = requests.post('https://api.shuabu.net/apix/xm.php', headers = self.headers, data = data).json()
+            tim1 = str(int(time.time()))
+            step1 = str(step_ + random.randint(1, 200))
+            data1 = self.get_md5data(phone=phone, password=password, tim=tim1, step=step1)
+            rep = requests.post('https://api.shuabu.net/apix/xm.php', headers = self.headers, data = data1).json()
             self.log.success(f"返回信息>> {rep['msg']} ")
-            massage = f'账号{phone}刷步数{step},返回信息:{rep["msg"]},时间{time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(int(time.time())))}'
+            massage = f'账号{phone}刷步数{step1},返回信息:{rep["msg"]},时间{time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(int(time.time())))}'
             self.log.info(massage)
             if any(rep['msg'] in i for i in ['同步失败', '登录失败，账户或密码错误', '您的时间异常，请同步最新时间后刷新网页']):
-                rep2 = requests.post('https://api.shuabu.net/apix/xm.php', headers = self.headers, data = data).json()
-                massage = f'账号{phone}刷步数{step},返回信息:第一次{rep["msg"]},第二次{rep2["msg"]},时间{time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(int(time.time())))}'
+                tim2 = str(int(time.time()))
+                step2 = str(step_ + random.randint(1, 200))
+                data2 = self.get_md5data(phone = phone, password = password, tim = tim2, step = step2)
+                rep2 = requests.post('https://api.shuabu.net/apix/xm.php', headers = self.headers, data = data2).json()
+                massage = f'账号{phone}刷步数{step2},返回信息:第一次{rep["msg"]},第二次{rep2["msg"]},时间{time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(int(time.time())))}'
                 self.log.info(massage)
-            send_msg.send_dingding(massage)
+                if rep2['msg'] != '同步成功':
+                    self.make_step(step_)
+            self.notice(massage)
+
+    def get_md5data(self, step, tim, phone, password):
+        data_str = f'{phone}1{password}2{step}xjdsb{tim}'
+        bt = base64.b64encode(data_str.encode('utf-8')).decode("utf-8")
+        md5_val = hashlib.md5(bt.encode('utf8')).hexdigest()
+        data = f'time={tim}&phone={phone}&password={password}&step={step}&key={md5_val}'
+        return data
 
 
 Sign = Sign()
@@ -173,22 +182,21 @@ def do_yundong(steps):
     YunDong.make_step(steps)
 
 
+schedule.every().day.at("07:30").do(do_sign)
 
-schedule.every().day.at("22:04").do(do_sign)
+schedule.every().day.at("07:40").do(do_yundong, steps = random.randint(0, 600))
+schedule.every().day.at("08:30").do(do_yundong, steps = random.randint(800, 1400))
+schedule.every().day.at("09:30").do(do_yundong, steps = random.randint(1600, 2200))
+schedule.every().day.at("10:30").do(do_yundong, steps = random.randint(2301, 2600))
+schedule.every().day.at("11:30").do(do_yundong, steps = random.randint(2701, 3100))
 
-schedule.every().day.at("07:40").do(do_yundong, steps = random.randint(0, 300))
-schedule.every().day.at("08:30").do(do_yundong, steps = random.randint(600, 1000))
-schedule.every().day.at("09:30").do(do_yundong, steps = random.randint(1500, 2000))
-schedule.every().day.at("10:30").do(do_yundong, steps = random.randint(2001, 2500))
-schedule.every().day.at("11:30").do(do_yundong, steps = random.randint(2501, 3000))
-
-schedule.every().day.at("14:30").do(do_yundong, steps = random.randint(3001, 3600))
+schedule.every().day.at("14:30").do(do_yundong, steps = random.randint(3201, 3700))
 schedule.every().day.at("15:30").do(do_yundong, steps = random.randint(4000, 5000))
-schedule.every().day.at("16:30").do(do_yundong, steps = random.randint(5001, 5200))
-schedule.every().day.at("17:30").do(do_yundong, steps = random.randint(5500, 6000))
+schedule.every().day.at("16:30").do(do_yundong, steps = random.randint(5201, 5700))
+schedule.every().day.at("17:30").do(do_yundong, steps = random.randint(5701, 6500))
 schedule.every().day.at("18:30").do(do_yundong, steps = random.randint(10000, 11000))
 schedule.every().day.at("19:30").do(do_yundong, steps = random.randint(13000, 15000))
-schedule.every().day.at("20:20").do(do_yundong, steps = random.randint(17987, 21000))
+schedule.every().day.at("20:30").do(do_yundong, steps = random.randint(17987, 21000))
 
 
 def run():
@@ -196,7 +204,6 @@ def run():
         schedule.run_pending()
         time.sleep(1)
 
-
-#测试用
+# 测试用
 # Sign._login()
 # Sign.login_with_cookie()
