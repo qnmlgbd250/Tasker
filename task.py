@@ -98,7 +98,6 @@ class Sign(object):
         resp = self.requests_.get(self._url, headers = self.headers)
         if '登录' not in resp.text:
             self.log.success('cookie缓存登录成功')
-            # send_msg.send_dingding('cookie缓存登录成功')
             self.sign_today()
         else:
             self.log.error('cookie缓存登录失败')
