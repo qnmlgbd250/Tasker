@@ -34,6 +34,7 @@ class Sign(object):
         self.requests_ = requests.session()
         self.RedisTool = RedisTool()
         self.log = Log()
+        self.notice = send_msg.send_dingding
 
     def Identify_code(self):
         import ddddocr
@@ -119,7 +120,7 @@ class Sign(object):
                 self.log.info('今日已签到')
                 massage = f'账号{os.getenv("CUNHUA_USER")}今日已签,时间{time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(int(time.time())))}'
         self.log.success(massage)
-        send_msg.send_dingding(massage)
+        self.notice(massage)
 
 
 class YunDong(object):
@@ -129,6 +130,7 @@ class YunDong(object):
             'referer': 'https://yd.shuabu.net/',
             'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/100.0.4896.127 Safari/537.36 Edg/100.0.1185.44'
         }
+        self.url = os.getenv('YUNDONG_WEBSITE')
         self.log = Log()
         self.notice = send_msg.send_dingding
 
@@ -143,23 +145,20 @@ class YunDong(object):
     def make_step(self, step_):
         ppdict = self.init_dict()
         for phone, password in ppdict.items():
-            tim1 = str(int(time.time()))
-            step1 = str(step_ + random.randint(1, 200))
-            data1 = self.get_md5data(phone=phone, password=password, tim=tim1, step=step1)
-            rep = requests.post('https://api.shuabu.net/apix/xm.php', headers = self.headers, data = data1).json()
-            self.log.success(f"返回信息>> {rep['msg']} ")
-            massage = f'账号{phone}刷步数{step1},返回信息:{rep["msg"]},时间{time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(int(time.time())))}'
-            self.log.info(massage)
-            if any(rep['msg'] in i for i in ['同步失败', '登录失败，账户或密码错误', '您的时间异常，请同步最新时间后刷新网页']):
-                tim2 = str(int(time.time()))
-                step2 = str(step_ + random.randint(1, 200))
-                data2 = self.get_md5data(phone = phone, password = password, tim = tim2, step = step2)
-                rep2 = requests.post('https://api.shuabu.net/apix/xm.php', headers = self.headers, data = data2).json()
-                massage = f'账号{phone}刷步数{step2},返回信息:第一次{rep["msg"]},第二次{rep2["msg"]},时间{time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(int(time.time())))}'
-                self.log.info(massage)
-                if rep2['msg'] != '同步成功':
-                    self.make_step(step_)
-            self.notice(massage)
+            for i in range(4):
+                tim1 = str(int(time.time()))
+                step1 = str(step_ + random.randint(1, 200))
+                data1 = self.get_md5data(phone = phone, password = password, tim = tim1, step = step1)
+                rep = requests.post(self.url, headers = self.headers, data = data1).json()
+                self.log.success(f"返回信息>> {rep['msg']} ")
+                if rep['msg'] == "同步成功":
+                    massage = f'用户{phone}修改步数{step1}成功,重试次数{i},时间{time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(int(time.time())))}'
+                    self.log.info(massage)
+                    self.notice(massage)
+                    break
+                else:
+                    self.log.info(f'第{i+1}次修改步数失败,重试')
+                    continue
 
     def get_md5data(self, step, tim, phone, password):
         data_str = f'{phone}1{password}2{step}xjdsb{tim}'
