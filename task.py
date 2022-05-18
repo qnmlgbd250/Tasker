@@ -144,6 +144,7 @@ class YunDong(object):
 
     def make_step(self, step_):
         ppdict = self.init_dict()
+        massage = ''
         for phone, password in ppdict.items():
             for i in range(4):
                 tim1 = str(int(time.time()))
@@ -152,13 +153,13 @@ class YunDong(object):
                 rep = requests.post(self.url, headers = self.headers, data = data1).json()
                 self.log.success(f"返回信息>> {rep['msg']} ")
                 if rep['msg'] == "同步成功":
-                    massage = f'用户{phone}修改步数{step1}成功,重试次数{i},时间{time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(int(time.time())))}'
-                    self.log.info(massage)
-                    self.notice(massage)
+                    massage += f'用户{phone}修改步数{step1}成功,重试次数{i}.\n时间{time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(int(time.time())))} \n\n'
                     break
                 else:
                     self.log.info(f'第{i+1}次修改步数失败,重试')
                     continue
+        self.log.info(massage)
+        self.notice(massage)
 
     def get_md5data(self, step, tim, phone, password):
         data_str = f'{phone}1{password}2{step}xjdsb{tim}'
