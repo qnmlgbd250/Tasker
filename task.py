@@ -47,18 +47,18 @@ class Sign(object):
         for _ in range(5):
             self.requests_.get(self._url, headers = self.headers)
             resp_ = self.requests_.get(
-                f'{self._url}/member.php?mod=logging&action=login&infloat=yes&handlekey=login&inajax=1&ajaxtarget=fwin_content_login', ).text
+                f'{self._url}/member.php?mod=logging&action=login&infloat=yes&handlekey=login&inajax=1&ajaxtarget=fwin_content_login',headers = self.headers).text
 
             loginhash = re.findall(r'id="loginform_(.*?)"', resp_)[0]
             formhash = re.findall(r'name="formhash" value="(\S{8})"', resp_)[0]
             seccodehash = re.findall(r'<span id="seccode_(\S{9})"></span>', resp_)[0]
 
             resp_1 = self.requests_.get(
-                f'{self._url}/misc.php?mod=seccode&action=update&idhash={seccodehash}&{random.random()}&modid=member::logging')
+                f'{self._url}/misc.php?mod=seccode&action=update&idhash={seccodehash}&{random.random()}&modid=member::logging',headers = self.headers)
 
             id_ = re.findall(r'update=(\d+)', resp_1.text)[0]
 
-            resp2 = self.requests_.get(f'{self._url}/misc.php?mod=seccode&update={id_}&idhash={seccodehash}', )
+            resp2 = self.requests_.get(f'{self._url}/misc.php?mod=seccode&update={id_}&idhash={seccodehash}',headers = self.headers)
             with open('code.jpg', 'wb') as f:
                 f.write(resp2.content)
             pic_str = self.Identify_code()
@@ -77,12 +77,15 @@ class Sign(object):
                     'answer': '', 'seccodehash': seccodehash, 'seccodemodid': 'member::logging',
                     'seccodeverify': pic_str}
 
-            resp3 = self.requests_.post(login_url, data = data)
+            resp3 = self.requests_.post(login_url, data = data,headers = self.headers)
             if '验证码填写错误' in resp3.text:
                 self.log.error('验证码错误,返回结果:{}'.format(resp3.text))
             if '密码错误次数过多，请 15 分钟后重新登录' in resp3.text:
                 self.log.error('密码错误次数过多，请 15 分钟后重新登录')
                 break
+            if '登录失败' in resp3.text:
+                self.log.error('登录失败')
+
             else:
                 self.log.success('自助登录成功')
                 cookies = self.requests_.cookies.get_dict()
@@ -97,7 +100,7 @@ class Sign(object):
         cookie = self.RedisTool.redis_get('Cookie_cunhua')
         self.headers.update({'Cookie': cookie})
         resp = self.requests_.get(self._url, headers = self.headers)
-        if '登录' not in resp.text:
+        if '签到' in resp.text:
             self.log.success('cookie缓存登录成功')
             self.sign_today()
         else:
@@ -110,7 +113,7 @@ class Sign(object):
         resp_ = self.requests_.get(self._url, headers = self.headers)
         if '今日已签' in resp_.text:
             self.log.info('今日已签到')
-            massage = f'账号{os.getenv("CUNHUA_USER")}今日已签,时间{time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(int(time.time())))}'
+            massage = f'账号{os.getenv("CUNHUA_USERNAME")}今日已签,时间{time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(int(time.time())))}'
         else:
             formhash = re.findall(r'name="formhash" value="(\S{8})"', resp_.text)[0]
             resp = self.requests_.get(

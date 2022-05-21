@@ -54,4 +54,4 @@ def send_dingding(msg):
         log.error(f'发送失败{response}')
 
 
-# send_notice('测试')
+# send_dingding('测试')
