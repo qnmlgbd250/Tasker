@@ -113,7 +113,7 @@ class Sign(object):
         resp_ = self.requests_.get(self._url, headers = self.headers)
         if '今日已签' in resp_.text:
             self.log.info('今日已签到')
-            massage = f'账号{os.getenv("CUNHUA_USERNAME")}今日已签,时间{time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(int(time.time())))}'
+            massage = f'账号{os.getenv("CUNHUA_USERNAME")}今日已签,\n时间{time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(int(time.time())))}'
         else:
             formhash = re.findall(r'name="formhash" value="(\S{8})"', resp_.text)[0]
             resp = self.requests_.get(
@@ -121,7 +121,7 @@ class Sign(object):
                 headers = self.headers)
             if '今日已签' in resp.text:
                 self.log.info('今日已签到')
-                massage = f'账号{os.getenv("CUNHUA_USER")}今日已签,时间{time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(int(time.time())))}'
+                massage = f'账号{os.getenv("CUNHUA_USERNAME")}今日已签,\n时间{time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(int(time.time())))}'
         self.log.success(massage)
         self.notice(massage)
 
