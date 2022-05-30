@@ -48,18 +48,21 @@ class SignCunHua(object):
         for _ in range(5):
             self.requests_.get(self._url, headers = self.headers)
             resp_ = self.requests_.get(
-                f'{self._url}/member.php?mod=logging&action=login&infloat=yes&handlekey=login&inajax=1&ajaxtarget=fwin_content_login',headers = self.headers).text
+                f'{self._url}/member.php?mod=logging&action=login&infloat=yes&handlekey=login&inajax=1&ajaxtarget=fwin_content_login',
+                headers = self.headers).text
 
             loginhash = re.findall(r'id="loginform_(.*?)"', resp_)[0]
             formhash = re.findall(r'name="formhash" value="(\S{8})"', resp_)[0]
             seccodehash = re.findall(r'<span id="seccode_(\S{9})"></span>', resp_)[0]
 
             resp_1 = self.requests_.get(
-                f'{self._url}/misc.php?mod=seccode&action=update&idhash={seccodehash}&{random.random()}&modid=member::logging',headers = self.headers)
+                f'{self._url}/misc.php?mod=seccode&action=update&idhash={seccodehash}&{random.random()}&modid=member::logging',
+                headers = self.headers)
 
             id_ = re.findall(r'update=(\d+)', resp_1.text)[0]
 
-            resp2 = self.requests_.get(f'{self._url}/misc.php?mod=seccode&update={id_}&idhash={seccodehash}',headers = self.headers)
+            resp2 = self.requests_.get(f'{self._url}/misc.php?mod=seccode&update={id_}&idhash={seccodehash}',
+                                       headers = self.headers)
             with open('code.jpg', 'wb') as f:
                 f.write(resp2.content)
             pic_str = self.Identify_code()
@@ -78,7 +81,7 @@ class SignCunHua(object):
                     'answer': '', 'seccodehash': seccodehash, 'seccodemodid': 'member::logging',
                     'seccodeverify': pic_str}
 
-            resp3 = self.requests_.post(login_url, data = data,headers = self.headers)
+            resp3 = self.requests_.post(login_url, data = data, headers = self.headers)
             if '验证码填写错误' in resp3.text:
                 self.log.error('验证码错误,返回结果:{}'.format(resp3.text))
             if '密码错误次数过多，请 15 分钟后重新登录' in resp3.text:
@@ -126,6 +129,7 @@ class SignCunHua(object):
         self.log.success(massage)
         self.notice(massage)
 
+
 class SignMoXing(object):
     def __init__(self):
         self._url = os.getenv('MOXING_WEBSITE')
@@ -147,34 +151,37 @@ class SignMoXing(object):
             loginhash = re.findall(r'loginhash=(.*?)', resp1.text)[0]
             formhash = re.findall(r'name="formhash" value="(\S{8})"', resp1.text)[0]
 
-            verify_code = self.requests_.get(f'{self._url}/captcha/tncode.php?t={random.random()}', headers = self.headers)
+            verify_code = self.requests_.get(f'{self._url}/captcha/tncode.php?t={random.random()}',
+                                             headers = self.headers)
             with open('verify_code.webp', 'wb') as f:
                 f.write(verify_code.content)
             self.cut_webp_to_png()
             code_distance = self.Identify_code()
-            skip_code = self.requests_.get(f'{self._url}/captcha/check.php?tn_r={code_distance}', headers = self.headers)
+            skip_code = self.requests_.get(f'{self._url}/captcha/check.php?tn_r={code_distance}',
+                                           headers = self.headers)
             if 'error' in skip_code.text:
                 self.log.error('验证码错误')
                 continue
             else:
                 clicaptcha_submit_info = skip_code.text
             login_params = {
-                    'mod': 'logging',
-                    'action': 'login',
-                    'loginsubmit': 'yes',
-                    'loginhash': loginhash,
-                    'inajax': '1',
-                }
+                'mod': 'logging',
+                'action': 'login',
+                'loginsubmit': 'yes',
+                'loginhash': loginhash,
+                'inajax': '1',
+            }
             login_data = {
-                    'formhash': formhash,
-                    'referer': f'{self._url}/home.php?mod=space&do=friend',
-                    'username': self.username,
-                    'password': self.password,
-                    'questionid': '0',
-                    'answer': '',
-                    'clicaptcha-submit-info': clicaptcha_submit_info,
-                }
-            login_resp = self.requests_.post(f'{self._url}/member.php',params = login_params, data = login_data, headers = self.headers)
+                'formhash': formhash,
+                'referer': f'{self._url}/home.php?mod=space&do=friend',
+                'username': self.username,
+                'password': self.password,
+                'questionid': '0',
+                'answer': '',
+                'clicaptcha-submit-info': clicaptcha_submit_info,
+            }
+            login_resp = self.requests_.post(f'{self._url}/member.php', params = login_params, data = login_data,
+                                             headers = self.headers)
             if '欢迎您回来' in login_resp.text:
                 self.log.success('登录成功')
                 cookies = self.requests_.cookies.get_dict()
@@ -204,7 +211,6 @@ class SignMoXing(object):
         else:
             self.log.success('今日签到成功')
 
-
     def cut_webp_to_png(self):
         # 裁剪图片
         img = cv2.imread('verify_code.webp')
@@ -223,12 +229,77 @@ class SignMoXing(object):
             background_bytes = f.read()
         res = det.slide_comparison(target_bytes, background_bytes)
         self.log.info('识别结果：' + str(res))
-        return res.get('target',[0])[0]
+        return res.get('target', [0])[0]
 
 
+class SignBZJ(object):
+    def __init__(self):
+        self._url = os.getenv('BZJ_WEBSITE')
+        self.username = os.getenv('BZJ_USERNAME')
+        self.password = os.getenv('BZJ_PASSWORD')
+        self.headers = {
+            'accept': 'application/json, text/plain, */*',
+            'accept-encoding': 'gzip, deflate, br',
+            'accept-language': 'zh-CN,zh;q=0.9,en;q=0.8,en-GB;q=0.7,en-US;q=0.6',
+            'content-type': 'application/x-www-form-urlencoded',
+            'origin': self._url,
+            'referer': self._url,
+            'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/101.0.4951.64 Safari/537.36 Edg/101.0.1210.53',
+        }
+        self.requests_ = requests.session()
+        self.RedisTool = RedisTool()
+        self.log = Log()
+        self.notice = send_msg.send_dingding
 
+    def init_dict(self):
+        phone_list_str = os.environ.get('BZJ_USERNAME')
+        password_list_str = os.environ.get('BZJ_PASSWORD')
+        phone_list = phone_list_str.split(',')
+        password_list = password_list_str.split(',')
+        ppdict = dict(zip(phone_list, password_list))
+        return ppdict
 
+    def _login(self):
+        ppdict = self.init_dict()
+        for username, password in ppdict.items():
+            data = {
+                'nickname': '',
+                'username': username,
+                'password': password,
+                'code': '',
+                'img_code': '',
+                'invitation_code': '',
+                'token': '',
+                'smsToken': '',
+                'luoToken': '',
+                'confirmPassword': '',
+                'loginType': '',
+            }
+            res = self.requests_.post(f'{self._url}/wp-json/jwt-auth/v1/token', data = data, headers = self.headers)
+            if 'token' in str(res.json()):
+                self.RedisTool.redis_set(f'Token_BZJ_{username}', res.json()['token'])
+                self.log.success(f'Token_BZJ_{username}保存到redis成功')
 
+    def sign_with_cookie(self):
+        manage = ''
+        ppdict = self.init_dict()
+        for username, password in ppdict.items():
+            token = self.RedisTool.redis_get(f'Token_BZJ_{username}')
+            if token:
+                self.headers['authorization'] = f'Bearer {token}'
+                resp = self.requests_.post(f'{self._url}/wp-json/b2/v1/userMission', headers = self.headers)
+                self.log.info(f'账号{username}今日签到获得积分' + str(resp.json()))
+                manage += f'账号{username}今日签到获得积分' + str(resp.json()) + '\t'
+                data = {
+                    'ref': 'null',
+                }
+                res = self.requests_.post(f'{self._url}/wp-json/b2/v1/getUserInfo', headers = self.headers, data = data)
+                self.log.info(f'账户积分' + str(res.json()['credit']))
+                manage += f'账户积分' + str(res.json()['credit']) + f'\n时间{time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(int(time.time())))} \n\n'
+            else:
+                self._login()
+                self.sign_with_cookie()
+        self.notice(manage)
 
 
 class YunDong(object):
@@ -264,7 +335,7 @@ class YunDong(object):
                     massage += f'用户{phone}修改步数{step1}成功,重试次数{i}.\n时间{time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(int(time.time())))} \n\n'
                     break
                 else:
-                    self.log.info(f'第{i+1}次修改步数失败,重试')
+                    self.log.info(f'第{i + 1}次修改步数失败,重试')
                     continue
         self.log.info(massage)
         self.notice(massage)
@@ -279,11 +350,15 @@ class YunDong(object):
 
 SignCunHua = SignCunHua()
 SignMoXing = SignMoXing()
+SignBZJ = SignBZJ()
 YunDong = YunDong()
 
 
 def do_sign():
     SignCunHua.login_with_cookie()
+
+def bzj_sign():
+    SignBZJ.sign_with_cookie()
 
 
 def do_yundong(steps):
@@ -291,6 +366,7 @@ def do_yundong(steps):
 
 
 schedule.every().day.at("07:30").do(do_sign)
+schedule.every().day.at("07:35").do(bzj_sign)
 
 schedule.every().day.at("07:40").do(do_yundong, steps = random.randint(0, 600))
 schedule.every().day.at("08:30").do(do_yundong, steps = random.randint(800, 1400))
@@ -313,5 +389,5 @@ def run():
         time.sleep(1)
 
 # 测试用
-# SignMoXing._login()
+# SignBZJ.sign_with_cookie()
 # SignCunHua.login_with_cookie()
