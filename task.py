@@ -243,7 +243,7 @@ class SignBZJ(object):
             'accept-language': 'zh-CN,zh;q=0.9,en;q=0.8,en-GB;q=0.7,en-US;q=0.6',
             'content-type': 'application/x-www-form-urlencoded',
             'origin': self._url,
-            'referer': self._url,
+            'referer': self._url + '/mission/today',
             'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/101.0.4951.64 Safari/537.36 Edg/101.0.1210.53',
         }
         self.requests_ = requests.session()
@@ -259,32 +259,34 @@ class SignBZJ(object):
         ppdict = dict(zip(phone_list, password_list))
         return ppdict
 
-    def _login(self):
-        ppdict = self.init_dict()
-        for username, password in ppdict.items():
-            data = {
-                'nickname': '',
-                'username': username,
-                'password': password,
-                'code': '',
-                'img_code': '',
-                'invitation_code': '',
-                'token': '',
-                'smsToken': '',
-                'luoToken': '',
-                'confirmPassword': '',
-                'loginType': '',
-            }
-            res = self.requests_.post(f'{self._url}/wp-json/jwt-auth/v1/token', data = data, headers = self.headers)
-            if 'token' in str(res.json()):
-                self.RedisTool.redis_set(f'Token_BZJ_{username}', res.json()['token'])
-                self.log.success(f'Token_BZJ_{username}保存到redis成功')
+    def _login(self,username,password):
+        # ppdict = self.init_dict()
+        # for username, password in ppdict.items():
+        data = {
+            'nickname': '',
+            'username': username,
+            'password': password,
+            'code': '',
+            'img_code': '',
+            'invitation_code': '',
+            'token': '',
+            'smsToken': '',
+            'luoToken': '',
+            'confirmPassword': '',
+            'loginType': '',
+        }
+        res = self.requests_.post(f'{self._url}/wp-json/jwt-auth/v1/token', data = data, headers = self.headers)
+        if 'token' in str(res.json()):
+            return res.json()['token']
+            # self.RedisTool.redis_set(f'Token_BZJ_{username}', res.json()['token'])
+            # self.log.success(f'Token_BZJ_{username}保存到redis成功')
 
     def sign_with_cookie(self):
         manage = ''
         ppdict = self.init_dict()
         for username, password in ppdict.items():
-            token = self.RedisTool.redis_get(f'Token_BZJ_{username}')
+            # token = self.RedisTool.redis_get(f'Token_BZJ_{username}')
+            token = self._login(username, password)
             if token:
                 self.headers['authorization'] = f'Bearer {token}'
                 resp = self.requests_.post(f'{self._url}/wp-json/b2/v1/userMission', headers = self.headers)
