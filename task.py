@@ -287,21 +287,19 @@ class SignBZJ(object):
         for username, password in ppdict.items():
             # token = self.RedisTool.redis_get(f'Token_BZJ_{username}')
             token = self._login(username, password)
-            he = {
-                'Host': 'www.bzjmn.com',
-                'Connection': 'keep-alive',
-                'Content-Length': '0',
-                'sec-ch-ua': '" Not A;Brand";v="99", "Chromium";v="102", "Microsoft Edge";v="102"',
-                'Accept': 'application/json, text/plain, */*',
-                'Authorization': 'Bearer {}'.format(token),
-                'sec-ch-ua-mobile': '?0',
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/102.0.5005.63 Safari/537.36 Edg/102.0.1245.30',
-                'Origin': 'https://www.bzjmn.com',
-                'Referer': 'https://www.bzjmn.com/mission/today',
-                'Accept-Encoding': 'gzip, deflate, br',
-                'Accept-Language': 'zh-CN,zh;q=0.9,en;q=0.8,en-GB;q=0.7,en-US;q=0.6',
-            }
             if token:
+                he = {
+                    'Host': 'www.bzjmn.com',
+                    'Connection': 'keep-alive',
+                    'Content-Length': '0',
+                    'Accept': 'application/json, text/plain, */*',
+                    'Authorization': 'Bearer {}'.format(token),
+                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/102.0.5005.63 Safari/537.36 Edg/102.0.1245.30',
+                    'Origin': 'https://www.bzjmn.com',
+                    'Referer': 'https://www.bzjmn.com/mission/today',
+                    'Accept-Encoding': 'gzip, deflate, br',
+                    'Accept-Language': 'zh-CN,zh;q=0.9,en;q=0.8,en-GB;q=0.7,en-US;q=0.6',
+                }
                 self.headers['authorization'] = f'Bearer {token}'
                 resp = self.requests_.post(f'{self._url}/wp-json/b2/v1/userMission', headers = he)
                 self.log.info(f'账号{username}今日签到获得积分' + str(resp.json()))
