@@ -301,6 +301,7 @@ class SignBZJ(object):
                     'Accept-Language': 'zh-CN,zh;q=0.9,en;q=0.8,en-GB;q=0.7,en-US;q=0.6',
                 }
                 self.headers['authorization'] = f'Bearer {token}'
+                resp_pr = self.requests_.post(f'{self._url}/wp-json/b2/v1/tjuser', headers = he)
                 resp = self.requests_.post(f'{self._url}/wp-json/b2/v1/userMission', headers = he)
                 self.log.info(f'账号{username}今日签到获得积分' + str(resp.json()))
                 manage += f'账号{username}今日签到获得积分' + str(resp.json()) + '\t'
@@ -382,19 +383,18 @@ def do_yundong(steps):
 schedule.every().day.at("07:30").do(do_cunhua_sign)
 schedule.every().day.at("07:35").do(do_bzj_sign)
 
-schedule.every().day.at("07:40").do(do_yundong, steps = random.randint(0, 600))
-schedule.every().day.at("08:30").do(do_yundong, steps = random.randint(800, 1400))
+
+schedule.every().day.at("08:30").do(do_yundong, steps = random.randint(400, 1400))
 schedule.every().day.at("09:30").do(do_yundong, steps = random.randint(1600, 2200))
 schedule.every().day.at("10:30").do(do_yundong, steps = random.randint(2301, 2600))
 schedule.every().day.at("11:30").do(do_yundong, steps = random.randint(2701, 3100))
 
-schedule.every().day.at("14:30").do(do_yundong, steps = random.randint(3201, 3700))
 schedule.every().day.at("15:30").do(do_yundong, steps = random.randint(4000, 5000))
 schedule.every().day.at("16:30").do(do_yundong, steps = random.randint(5201, 5700))
-schedule.every().day.at("17:30").do(do_yundong, steps = random.randint(5701, 6500))
-schedule.every().day.at("18:30").do(do_yundong, steps = random.randint(10000, 11000))
-schedule.every().day.at("19:30").do(do_yundong, steps = random.randint(13000, 15000))
-schedule.every().day.at("20:30").do(do_yundong, steps = random.randint(17987, 21000))
+schedule.every().day.at("17:30").do(do_yundong, steps = random.randint(6000, 8000))
+schedule.every().day.at("18:30").do(do_yundong, steps = random.randint(9000, 12999))
+schedule.every().day.at("19:30").do(do_yundong, steps = random.randint(13000, 17000))
+schedule.every().day.at("20:30").do(do_yundong, steps = random.randint(17987, 22000))
 
 
 def run():
