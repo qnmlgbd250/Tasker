@@ -238,13 +238,7 @@ class SignBZJ(object):
         self.username = os.getenv('BZJ_USERNAME')
         self.password = os.getenv('BZJ_PASSWORD')
         self.headers = {
-            'accept': 'application/json, text/plain, */*',
-            'accept-encoding': 'gzip, deflate, br',
-            'accept-language': 'zh-CN,zh;q=0.9,en;q=0.8,en-GB;q=0.7,en-US;q=0.6',
-            'content-type': 'application/x-www-form-urlencoded',
-            'origin': self._url,
-            'referer': self._url + '/mission/today',
-            'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/101.0.4951.64 Safari/537.36 Edg/101.0.1210.53',
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/102.0.5005.63 Safari/537.36 Edg/102.0.1245.30',
         }
         self.requests_ = requests.session()
         self.RedisTool = RedisTool()
@@ -259,7 +253,7 @@ class SignBZJ(object):
         ppdict = dict(zip(phone_list, password_list))
         return ppdict
 
-    def _login(self,username,password):
+    def _login(self, username, password):
         # ppdict = self.init_dict()
         # for username, password in ppdict.items():
         data = {
@@ -275,7 +269,7 @@ class SignBZJ(object):
             'confirmPassword': '',
             'loginType': '',
         }
-        res = self.requests_.post(f'{self._url}/wp-json/jwt-auth/v1/token', data = data, headers = self.headers)
+        res = requests.post(f'{self._url}/wp-json/jwt-auth/v1/token', data = data, headers = self.headers)
         if 'token' in str(res.json()):
             return res.json()['token']
             # self.RedisTool.redis_set(f'Token_BZJ_{username}', res.json()['token'])
@@ -287,31 +281,33 @@ class SignBZJ(object):
         for username, password in ppdict.items():
             # token = self.RedisTool.redis_get(f'Token_BZJ_{username}')
             token = self._login(username, password)
-            if token:
-                he = {
-                    'Host': 'www.bzjmn.com',
-                    'Connection': 'keep-alive',
-                    'Content-Length': '0',
-                    'Accept': 'application/json, text/plain, */*',
-                    'Authorization': 'Bearer {}'.format(token),
-                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/102.0.5005.63 Safari/537.36 Edg/102.0.1245.30',
-                    'Origin': 'https://www.bzjmn.com',
-                    'Referer': 'https://www.bzjmn.com/mission/today',
-                    'Accept-Encoding': 'gzip, deflate, br',
-                    'Accept-Language': 'zh-CN,zh;q=0.9,en;q=0.8,en-GB;q=0.7,en-US;q=0.6',
+            try:
+                self.requests_.get('https://www.bzjmn.com/mission/today', headers = self.headers)
+                self.headers.update({'authorization': 'Bearer {}'.format(token)})
+                data = {
+                    'ref': 'null',
                 }
-                self.headers['authorization'] = f'Bearer {token}'
-                resp_pr = self.requests_.post(f'{self._url}/wp-json/b2/v1/tjuser', headers = he)
-                resp = self.requests_.post(f'{self._url}/wp-json/b2/v1/userMission', headers = he)
+                self.requests_.post('https://www.bzjmn.com/wp-json/b2/v1/getUserInfo', headers = self.headers, data = data)
+                data = []
+                self.requests_.post('https://www.bzjmn.com/wp-json/b2/v1/getLatestAnnouncement', headers = self.headers,data = data)
+                data = {
+                    'count': '10',
+                    'paged': '1',
+                }
+                self.requests_.post('https://www.bzjmn.com/wp-json/b2/v1/getUserMission', headers = self.headers,
+                                      data = data)
+                self.requests_.post('https://www.bzjmn.com/wp-json/b2/v1/tjuser', headers = self.headers)
+                resp = self.requests_.post('https://www.bzjmn.com/wp-json/b2/v1/userMission', headers = self.headers)
                 self.log.info(f'账号{username}今日签到获得积分' + str(resp.json()))
-                manage += f'账号{username}今日签到获得积分' + str(resp.json()) + '\t'
+                manage += f'账号{username}今日签到获得积分' + (str(resp.json().get("credit",'')) if isinstance(resp.json(),dict) else  str(resp.json()))+ '\t'
                 data = {
                     'ref': 'null',
                 }
                 res = self.requests_.post(f'{self._url}/wp-json/b2/v1/getUserInfo', headers = self.headers, data = data)
                 self.log.info(f'账户积分' + str(res.json()['credit']))
-                manage += f'账户积分' + str(res.json()['credit']) + f'\n时间{time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(int(time.time())))} \n\n'
-            else:
+                manage += f'账户积分' + str(res.json()[
+                                            'credit']) + f'\n时间{time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(int(time.time())))} \n\n'
+            except:
                 self._login(username, password)
                 self.sign_with_cookie()
         self.notice(manage)
@@ -372,6 +368,7 @@ YunDong = YunDong()
 def do_cunhua_sign():
     SignCunHua.login_with_cookie()
 
+
 def do_bzj_sign():
     SignBZJ.sign_with_cookie()
 
@@ -382,7 +379,6 @@ def do_yundong(steps):
 
 schedule.every().day.at("07:30").do(do_cunhua_sign)
 schedule.every().day.at("07:35").do(do_bzj_sign)
-
 
 schedule.every().day.at("08:30").do(do_yundong, steps = random.randint(400, 1400))
 schedule.every().day.at("09:30").do(do_yundong, steps = random.randint(1600, 2200))
