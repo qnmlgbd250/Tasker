@@ -304,9 +304,8 @@ class SignBZJ(object):
                     'ref': 'null',
                 }
                 res = self.requests_.post(f'{self._url}/wp-json/b2/v1/getUserInfo', headers = self.headers, data = data)
-                self.log.info(f'账户积分' + str(res.json()['credit']))
-                manage += f'账户积分' + str(res.json()[
-                                            'credit']) + f'\n时间{time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(int(time.time())))} \n\n'
+                self.log.info(f'账户积分' + str(res.json()['user_data']['credit']))
+                manage += f'账户积分' + str(res.json()['user_data']['credit']) + f'\n时间{time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(int(time.time())))} \n\n'
             except:
                 self._login(username, password)
                 self.sign_with_cookie()
@@ -399,5 +398,5 @@ def run():
         time.sleep(1)
 
 # 测试用
-# SignBZJ.sign_with_cookie()
+SignBZJ.sign_with_cookie()
 # SignCunHua.login_with_cookie()
