@@ -398,5 +398,5 @@ def run():
         time.sleep(1)
 
 # 测试用
-SignBZJ.sign_with_cookie()
+# SignBZJ.sign_with_cookie()
 # SignCunHua.login_with_cookie()
