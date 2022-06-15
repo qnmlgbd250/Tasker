@@ -282,22 +282,22 @@ class SignBZJ(object):
             # token = self.RedisTool.redis_get(f'Token_BZJ_{username}')
             token = self._login(username, password)
             try:
-                self.requests_.get('https://www.bzjmn.com/mission/today', headers = self.headers)
+                self.requests_.get(f'{self._url}/mission/today', headers = self.headers)
                 self.headers.update({'authorization': 'Bearer {}'.format(token)})
                 data = {
                     'ref': 'null',
                 }
-                self.requests_.post('https://www.bzjmn.com/wp-json/b2/v1/getUserInfo', headers = self.headers, data = data)
+                self.requests_.post(f'{self._url}/wp-json/b2/v1/getUserInfo', headers = self.headers, data = data)
                 data = []
-                self.requests_.post('https://www.bzjmn.com/wp-json/b2/v1/getLatestAnnouncement', headers = self.headers,data = data)
+                self.requests_.post(f'{self._url}/wp-json/b2/v1/getLatestAnnouncement', headers = self.headers,data = data)
                 data = {
                     'count': '10',
                     'paged': '1',
                 }
-                self.requests_.post('https://www.bzjmn.com/wp-json/b2/v1/getUserMission', headers = self.headers,
+                self.requests_.post(f'{self._url}/wp-json/b2/v1/getUserMission', headers = self.headers,
                                       data = data)
-                self.requests_.post('https://www.bzjmn.com/wp-json/b2/v1/tjuser', headers = self.headers)
-                resp = self.requests_.post('https://www.bzjmn.com/wp-json/b2/v1/userMission', headers = self.headers)
+                self.requests_.post(f'{self._url}/wp-json/b2/v1/tjuser', headers = self.headers)
+                resp = self.requests_.post(f'{self._url}/wp-json/b2/v1/userMission', headers = self.headers)
                 self.log.info(f'账号{username}今日签到获得积分' + str(resp.json()))
                 manage += f'账号{username}今日签到获得积分' + (str(resp.json().get("credit",'')) if isinstance(resp.json(),dict) else  str(resp.json()))+ '\t'
                 data = {
