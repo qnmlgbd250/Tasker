@@ -289,8 +289,14 @@ def do_cunhua_sign():
 def do_yundong(steps):
     YunDong.make_step(steps)
 
+def do_feige():
+    Feige.sign_()
+
+
+
 
 schedule.every().day.at("07:30").do(do_cunhua_sign)
+schedule.every().day.at("08:00").do(do_feige)
 
 
 schedule.every().day.at("08:30").do(do_yundong, steps = random.randint(400, 1400))
