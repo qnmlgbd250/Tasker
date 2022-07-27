@@ -270,13 +270,33 @@ class Feige(object):
                                            headers=headers)
             self.log.info('飞鸽内网穿透签到返回信息'+ str(res_sign.json()))
             if res_sign.json()['success']:
-                msg = f'飞鸽内网穿透签到返回信息:{res_sign.json()["success"]},连续签到天数:{res_sign.json()["days"]},积分:{res_sign.json()["points"]},重试次数:{str(_)}\n时间{time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(int(time.time())))}'
+                check_in = res_sign.json()["days"]
+                credits = res_sign.json()["points"]
+                msg = '飞鸽内网穿透签到返回信息\n\n' \
+                      '今日签到成功' + '\n' \
+                      '连续签到天数:' + check_in + '\n' \
+                      '积分:' + credits + '\n' \
+                      '重试次数:' + str(_) + '\n\n' \
+                      '时间:' + time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(int(time.time())))
                 self.notice(msg)
                 break
             else:
-                self.log.info(f'飞鸽内网穿透签到失败:{str(res_sign.json())},重试次数:{str(_)}')
-                time.sleep(1)
-                continue
+                dashboard = self.requests_.get(f'{self.url}/dashboard.html')
+                if '今日已签到' in dashboard.text:
+                    credits = re.findall(r'<span id="credits">(.*?)</span>',dashboard.text)[0]
+                    check_in = re.findall(r'<span id="check-in">(.*?)</span>',dashboard.text)[0]
+                    msg = '飞鸽内网穿透签到返回信息\n\n' \
+                          '今日已签到' + '\n' \
+                          '连续签到天数:'+check_in + '\n'\
+                          '积分:' + credits + '\n'\
+                          '重试次数:' + str(_) + '\n\n'\
+                          '时间:' + time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(int(time.time())))
+                    self.notice(msg)
+                    break
+                else:
+                    self.log.info(f'飞鸽内网穿透签到失败:{str(res_sign.json())},重试次数:{str(_)}')
+                    time.sleep(1)
+                    continue
 
 
 
