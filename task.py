@@ -246,7 +246,6 @@ class Feige(object):
 
     def aes_encrypt(self, word, key):
         """AES加密"""
-
         aes_cipher = encrypt_tools.AESCipher(key)
         encrypted = aes_cipher.encrypt(word)
         return encrypted
@@ -259,19 +258,27 @@ class Feige(object):
         }
         rep = self.requests_.post(f'{self.url}/login',data=post_data)
         self.log.info('飞鸽登录返回信息'+ str(rep.text))
+
     def sign_(self):
         self.login_()
-        json_data = {"captchaVerification": self.get_yzm()}
-        headers = {
-            'content-type': 'application/json;charset=UTF-8',
-        }
-        res_sign = self.requests_.post(f"{self.url}/signIn", json=json_data,
-                                       headers=headers)
-        self.log.info('飞鸽内网穿透签到返回信息'+ str(res_sign.json()))
-        if res_sign.json()['success']:
+        for _ in range(5):
+            json_data = {"captchaVerification": self.get_yzm()}
+            headers = {
+                'content-type': 'application/json;charset=UTF-8',
+            }
+            res_sign = self.requests_.post(f"{self.url}/signIn", json=json_data,
+                                           headers=headers)
+            self.log.info('飞鸽内网穿透签到返回信息'+ str(res_sign.json()))
+            if res_sign.json()['success']:
+                msg = f'飞鸽内网穿透签到返回信息:{res_sign.json()["success"]},连续签到天数:{res_sign.json()["days"]},积分:{res_sign.json()["points"]},重试次数:{str(_)}\n时间{time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(int(time.time())))}'
+                self.notice(msg)
+                break
+            else:
+                self.log.info(f'飞鸽内网穿透签到失败:{str(res_sign.json())},重试次数:{str(_)}')
+                time.sleep(1)
+                continue
 
-            msg = '飞鸽内网穿透签到返回信息:' + res_sign.json()['success'] + '连续签到天数:' + res_sign.json()['days'] + '积分:' + res_sign.json()['points']
-            self.notice(msg)
+
 
 
 
