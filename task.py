@@ -274,8 +274,8 @@ class Feige(object):
                 credits = res_sign.json()["points"]
                 msg = '飞鸽内网穿透签到返回信息\n\n' \
                       '今日签到成功' + '\n' \
-                      '连续签到天数:' + check_in + '\n' \
-                      '积分:' + credits + '\n' \
+                      '连续签到天数:' + str(check_in) + '\n' \
+                      '积分:' + str(credits) + '\n' \
                       '重试次数:' + str(_) + '\n\n' \
                       '时间:' + time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(int(time.time())))
                 self.notice(msg)
@@ -287,8 +287,8 @@ class Feige(object):
                     check_in = re.findall(r'<span id="check-in">(.*?)</span>',dashboard.text)[0]
                     msg = '飞鸽内网穿透签到返回信息\n\n' \
                           '今日已签到' + '\n' \
-                          '连续签到天数:'+check_in + '\n'\
-                          '积分:' + credits + '\n'\
+                          '连续签到天数:'+str(check_in) + '\n'\
+                          '积分:' + str(credits) + '\n'\
                           '重试次数:' + str(_) + '\n\n'\
                           '时间:' + time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(int(time.time())))
                     self.notice(msg)
@@ -345,5 +345,5 @@ def run():
         time.sleep(1)
 
 # 测试用
-# Feige.sign_()
+Feige.sign_()
 # SignCunHua.login_with_cookie()
