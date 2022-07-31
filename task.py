@@ -270,6 +270,8 @@ class Feige(object):
                 }
                 res_sign = self.requests_.post(f"{self.url}/signIn", json=json_data,
                                                headers=headers)
+                tunnel_info = self.requests_.get(f"{self.url}/queryTunnels3?showAll=false&search=&sort=&order=&limit=10&page=1&offset=0",headers=headers)
+                endDate = tunnel_info.json()['rows'][0]['endDate']
                 self.log.info('飞鸽内网穿透签到返回信息'+ str(res_sign.json()))
                 if res_sign.json()['success']:
                     check_in = res_sign.json()["days"]
@@ -278,6 +280,7 @@ class Feige(object):
                           '今日签到成功' + '\n' \
                           '连续签到天数:' + str(check_in) + '\n' \
                           '积分:' + str(credits) + '\n' \
+                          '隧道到期:' + str(endDate[:10]) + '\n' \
                           '重试次数:' + str(rt) + '\n\n' \
                           '时间:' + time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(int(time.time())))
                     self.notice(msg)
@@ -290,7 +293,8 @@ class Feige(object):
                         msg = '飞鸽内网穿透签到返回信息\n\n' \
                               '今日已签到' + '\n' \
                               '连续签到天数:'+str(check_in) + '\n'\
-                              '积分:' + str(credits) + '\n'\
+                              '积分:' + str(credits) + '\n' \
+                              '隧道到期:' + str(endDate[:10]) + '\n' \
                               '重试次数:' + str(rt) + '\n\n'\
                               '时间:' + time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(int(time.time())))
                         self.notice(msg)
