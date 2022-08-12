@@ -270,7 +270,7 @@ class Feige(object):
                 }
                 res_sign = self.requests_.post(f"{self.url}/signIn", json=json_data,
                                                headers=headers)
-                tunnel_info = self.requests_.get(f"{self.url}/queryTunnels3?showAll=false&search=&sort=&order=&limit=10&page=1&offset=0",headers=headers)
+                tunnel_info = self.requests_.get(f"{self.url}/queryTunnels?showAll=false&search=&sort=&order=&limit=10&page=1&offset=0",headers=headers)
                 endDate = tunnel_info.json()['rows'][0]['endDate']
                 self.log.info('飞鸽内网穿透签到返回信息'+ str(res_sign.json()))
                 if res_sign.json()['success']:
