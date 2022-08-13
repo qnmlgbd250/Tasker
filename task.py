@@ -368,5 +368,5 @@ def run():
         time.sleep(1)
 
 # 测试用
-Feige.sign_()
+# Feige.sign_()
 # SignCunHua.login_with_cookie()
