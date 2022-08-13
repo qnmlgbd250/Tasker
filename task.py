@@ -50,8 +50,7 @@ class SignCunHua(object):
         for _ in range(5):
             self.requests_.get(self._url, headers = self.headers)
             resp_ = self.requests_.get(
-                f'{self._url}/member.php?mod=logging&action=login&infloat=yes&handlekey=login&inajax=1&ajaxtarget=fwin_content_login',
-                headers = self.headers).text
+                f'{self._url}/member.php?mod=logging&action=login&infloat=yes&handlekey=login&inajax=1&ajaxtarget=fwin_content_login', headers=self.headers).text
 
             loginhash = re.findall(r'id="loginform_(.*?)"', resp_)[0]
             formhash = re.findall(r'name="formhash" value="(\S{8})"', resp_)[0]
@@ -360,5 +359,5 @@ def run():
         time.sleep(1)
 
 # 测试用
-# Feige.sign_()
+Feige.sign_()
 # SignCunHua.login_with_cookie()
