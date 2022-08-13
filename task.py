@@ -251,21 +251,25 @@ class Feige(object):
         return encrypted
 
     def login_(self):
-        headers = {
-            'accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9',
-            'accept-encoding': 'gzip, deflate, br',
-            'accept-language': 'zh-CN,zh;q=0.9,en;q=0.8,en-GB;q=0.7,en-US;q=0.6',
-            'cache-control': 'max-age=0',
-            'referer': 'https://www.fgnwct.com/login.html',
-            'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/104.0.5112.81 Safari/537.36 Edg/104.0.1293.47',
-        }
-        post_data = {
-            'email': os.environ.get('FEIGE_USER'),
-            'password': os.environ.get('FEIGE_NUMBER'),
-            'rememberMe': '1',
-        }
-        rep = self.requests_.post(f'{self.url}/login',data=post_data,headers=headers)
-        self.log.info('飞鸽登录返回信息'+ str(rep.text))
+        try:
+            headers = {
+                'accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9',
+                'accept-encoding': 'gzip, deflate, br',
+                'accept-language': 'zh-CN,zh;q=0.9,en;q=0.8,en-GB;q=0.7,en-US;q=0.6',
+                'cache-control': 'max-age=0',
+                'referer': 'https://www.fgnwct.com/login.html',
+                'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/104.0.5112.81 Safari/537.36 Edg/104.0.1293.47',
+            }
+            post_data = {
+                'email': os.environ.get('FEIGE_USER'),
+                'password': os.environ.get('FEIGE_NUMBER'),
+                'rememberMe': '1',
+            }
+            rep = self.requests_.post(f'{self.url}/login',data=post_data,headers=headers)
+            print(rep.text)
+            self.log.info('飞鸽登录返回信息' + str(rep.text))
+        except Exception as e:
+            self.log.error('飞鸽登录失败' + str(e))
 
     def sign_(self):
         self.login_()
