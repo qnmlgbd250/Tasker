@@ -180,6 +180,7 @@ class YunDong(object):
 class Feige(object):
     def __init__(self):
         self.requests_ = requests.Session()
+        self.requests_.proxies = {'http': 'http://t15932539964529:nwgzggcj@e726.kdltps.com:15818', 'https': 'http://t15932539964529:nwgzggcj@e726.kdltps.com:15818'}
         self.url = os.getenv('FEIGE_WEBSITE')
         self.requests_.get(self.url)
         self.log = Log()
@@ -192,7 +193,6 @@ class Feige(object):
             "ts": str(int(time.time() * 1000))
         }
         res_captcha = self.requests_.post(f"{self.url}/captcha/get", json=json_data)
-        print(res_captcha.text)
         res_json = res_captcha.json()
         jigsaw_base64 = original_base64 = secret_key = token = ''
         if res_json["success"]:
@@ -251,25 +251,15 @@ class Feige(object):
         return encrypted
 
     def login_(self):
-        try:
-            headers = {
-                'accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9',
-                'accept-encoding': 'gzip, deflate, br',
-                'accept-language': 'zh-CN,zh;q=0.9,en;q=0.8,en-GB;q=0.7,en-US;q=0.6',
-                'cache-control': 'max-age=0',
-                'referer': 'https://www.fgnwct.com/login.html',
-                'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/104.0.5112.81 Safari/537.36 Edg/104.0.1293.47',
-            }
-            post_data = {
-                "email": os.environ.get('FEIGE_USER'),
-                "password": os.environ.get('FEIGE_NUMBER'),
-                "rememberMe": "1",
-            }
-            rep = self.requests_.post(f'{self.url}/login', data=post_data,headers=headers)
-            print(rep.text)
-            self.log.info('飞鸽登录返回信息' + str(rep.text))
-        except Exception as e:
-            self.log.error('飞鸽登录失败' + str(e))
+        post_data = {
+            "email": os.environ.get('FEIGE_USER'),
+            "password": os.environ.get('FEIGE_NUMBER'),
+            "rememberMe": "1",
+        }
+        rep = self.requests_.post(f'{self.url}/login', data=post_data)
+        print(rep.text)
+        self.log.info('飞鸽登录返回信息' + str(rep.text))
+
 
     def sign_(self):
         self.login_()
