@@ -192,6 +192,7 @@ class Feige(object):
             "ts": str(int(time.time() * 1000))
         }
         res_captcha = self.requests_.post(f"{self.url}/captcha/get", json=json_data)
+        print(res_captcha.text)
         res_json = res_captcha.json()
         jigsaw_base64 = original_base64 = secret_key = token = ''
         if res_json["success"]:
