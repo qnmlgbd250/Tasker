@@ -158,8 +158,8 @@ class YunDong(object):
             for i in range(4):
                 tim1 = str(int(time.time()))
                 step1 = str(step_ + random.randint(1, 200))
-                data1 = self.get_md5data(phone = phone, password = password, tim = tim1, step = step1)
-                rep = requests.post(self.url, headers = self.headers, data = data1).json()
+                data1 = self.get_md5data(phone=phone, password=password, tim=tim1, step=step1)
+                rep = requests.post(self.url, headers=self.headers, data=data1).json()
                 self.log.success(f"返回信息>> {rep['msg']} ")
                 if rep['msg'] == "同步成功":
                     massage += f'用户{phone}修改步数{step1}成功,重试次数{i}.\n时间{time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(int(time.time())))} \n\n'
@@ -180,7 +180,8 @@ class YunDong(object):
 class Feige(object):
     def __init__(self):
         self.requests_ = requests.Session()
-        self.requests_.proxies = {'http': 'http://t15932539964529:nwgzggcj@e726.kdltps.com:15818', 'https': 'http://t15932539964529:nwgzggcj@e726.kdltps.com:15818'}
+        self.https_proxy = f"http://{os.getenv('PROXY_USER')}:{os.getenv('PROXY_PASS')}@{os.getenv('PROXY_HOST')}:{os.getenv('PROXY_PORT')}"
+        self.requests_.proxies = {'http': self.https_proxy, 'https': self.https_proxy}
         self.url = os.getenv('FEIGE_WEBSITE')
         self.requests_.get(self.url)
         self.log = Log()
@@ -251,14 +252,19 @@ class Feige(object):
         return encrypted
 
     def login_(self):
-        post_data = {
-            "email": os.environ.get('FEIGE_USER'),
-            "password": os.environ.get('FEIGE_NUMBER'),
-            "rememberMe": "1",
-        }
-        rep = self.requests_.post(f'{self.url}/login', data=post_data)
-        print(rep.text)
-        self.log.info('飞鸽登录返回信息' + str(rep.text))
+        try:
+            post_data = {
+                "email": os.environ.get('FEIGE_USER'),
+                "password": os.environ.get('FEIGE_NUMBER'),
+                "rememberMe": "1",
+            }
+            rep = self.requests_.post(f'{self.url}/login', data=post_data)
+            if rep.status_code != 200:
+                self.notice('飞鸽内网穿透登录失败,检查代理是否正常使用,登录返回状态码：' + str(rep.status_code))
+            self.log.info('飞鸽登录返回信息' + str(rep.text))
+        except Exception as e:
+            self.log.error(e)
+            self.notice('飞鸽内网穿透登录失败,检查代理是否正常使用,错误信息：' + str(e))
 
 
     def sign_(self):
@@ -343,17 +349,17 @@ schedule.every().day.at("07:30").do(do_cunhua_sign)
 schedule.every().day.at("08:00").do(do_feige)
 
 
-schedule.every().day.at("08:30").do(do_yundong, steps = random.randint(400, 1400))
-schedule.every().day.at("09:30").do(do_yundong, steps = random.randint(1600, 2200))
-schedule.every().day.at("10:30").do(do_yundong, steps = random.randint(2301, 2600))
-schedule.every().day.at("11:30").do(do_yundong, steps = random.randint(2701, 3100))
+schedule.every().day.at("08:30").do(do_yundong, steps=random.randint(400, 1400))
+schedule.every().day.at("09:30").do(do_yundong, steps=random.randint(1401, 2200))
+schedule.every().day.at("10:30").do(do_yundong, steps=random.randint(2201, 2600))
+schedule.every().day.at("11:30").do(do_yundong, steps=random.randint(2601, 3100))
 
-schedule.every().day.at("15:30").do(do_yundong, steps = random.randint(4000, 5000))
-schedule.every().day.at("16:30").do(do_yundong, steps = random.randint(5201, 5700))
-schedule.every().day.at("17:30").do(do_yundong, steps = random.randint(6000, 8000))
-schedule.every().day.at("18:30").do(do_yundong, steps = random.randint(9000, 12999))
-schedule.every().day.at("20:30").do(do_yundong, steps = random.randint(13000, 17000))
-schedule.every().day.at("23:00").do(do_yundong, steps = random.randint(17987, 22000))
+schedule.every().day.at("15:30").do(do_yundong, steps=random.randint(3101, 5000))
+schedule.every().day.at("16:30").do(do_yundong, steps=random.randint(5001, 5700))
+schedule.every().day.at("17:30").do(do_yundong, steps=random.randint(5701, 7000))
+schedule.every().day.at("18:30").do(do_yundong, steps=random.randint(7001, 9999))
+schedule.every().day.at("20:30").do(do_yundong, steps=random.randint(10000, 17980))
+schedule.every().day.at("23:00").do(do_yundong, steps=random.randint(17987, 22000))
 
 
 def run():
@@ -362,5 +368,5 @@ def run():
         time.sleep(1)
 
 # 测试用
-Feige.sign_()
+# Feige.sign_()
 # SignCunHua.login_with_cookie()
