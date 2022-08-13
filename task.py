@@ -191,7 +191,7 @@ class Feige(object):
             "clientUid": "slider-477ad1f5-c470-45e8-ba3a-f997bef1b55c",
             "ts": str(int(time.time() * 1000))
         }
-        res_captcha = self.requests_.post(f"{self.url}/captcha/get", json=json_data, verify=False)
+        res_captcha = self.requests_.post(f"{self.url}/captcha/get", json=json_data)
         res_json = res_captcha.json()
         jigsaw_base64 = original_base64 = secret_key = token = ''
         if res_json["success"]:
