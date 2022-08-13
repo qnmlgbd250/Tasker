@@ -261,11 +261,11 @@ class Feige(object):
                 'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/104.0.5112.81 Safari/537.36 Edg/104.0.1293.47',
             }
             post_data = {
-                'email': os.environ.get('FEIGE_USER'),
-                'password': os.environ.get('FEIGE_NUMBER'),
-                'rememberMe': '1',
+                "email": os.environ.get('FEIGE_USER'),
+                "password": os.environ.get('FEIGE_NUMBER'),
+                "rememberMe": "1",
             }
-            rep = self.requests_.post(f'{self.url}/login',data=post_data,headers=headers)
+            rep = self.requests_.post(f'{self.url}/login', data=post_data,headers=headers)
             print(rep.text)
             self.log.info('飞鸽登录返回信息' + str(rep.text))
         except Exception as e:
